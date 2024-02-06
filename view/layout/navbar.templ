@@ -1,0 +1,51 @@
+package layout
+
+import (
+	"github.com/JaiiR320/SpotifAI/model"
+)
+
+var imageUrl string
+var spotifyUrl string
+
+func isLogged() bool {
+	images := model.CurrentUser.Images
+	if images == nil {
+		return false
+	}
+	imageUrl = images[0].Url
+	spotifyUrl = model.CurrentUser.ExternalUrls.Spotify
+	return true
+}
+
+templ loginButton(){
+	<div class="bg-accent hover:bg-accent-hover rounded-full p-2 text-2xl font-bold text-center align-middle text-background transition-transform duration-150 hover:scale-110">
+		<a href="/login" class="no-underline px-1">Login</a>
+	</div>
+}
+
+templ userImage(){
+	<div class="flex items-center" >
+		<div class="text-3xl text-unfocused mr-2">
+			Good Evening, 
+		</div>
+		<div class="font-bold text-focused text-3xl ">
+			{ model.CurrentUser.DisplayName }
+		</div>
+		<a href={ templ.SafeURL(spotifyUrl) } >
+			<image src={ imageUrl } class="rounded-full ml-4 scale-150 h-12 w-12" alt="User Image" />
+		</a>
+	</div>
+}
+
+templ Navbar(){
+	<nav class="bg-panel flex flex-row text-5xl justify-between rounded-xl p-6 m-2">
+		<div class="font-bold text-nowrap text-center align-middle">
+			<div class="text-focused">SpotifAI</div>
+		</div>
+		if isLogged() {
+			@userImage()
+		} else {
+			@loginButton()
+		}
+	</nav>
+}
