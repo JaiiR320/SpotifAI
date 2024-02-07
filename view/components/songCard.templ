@@ -1,0 +1,30 @@
+package components
+
+import "github.com/JaiiR320/SpotifAI/model"
+
+func truncate(str string, m int) string {
+    if len(str) > m {
+        return str[:m] + "..."
+    }
+    return str
+
+}
+
+templ SongCard(song model.Track){
+    <div class="flex flex-row hover:bg-feature rounded-lg p-2 items-center justify-between">
+        <div class="flex flex-row justify-start">
+            <img src={song.Album.Images[2].URL} class="mr-2 w-12 h-12" alt="Song Image"/>
+            <div class="flex-col"> 
+                <div class="text-lg font-bold text-focused">
+                    { truncate(song.Name, 35) }
+                </div>
+                <div class="text-md text-unfocused">
+                    { truncate(song.Album.Artists[0].Name, 75) }
+                </div>
+            </div>
+        </div>
+        <div class="text-lg text-unfocused">
+            { truncate(song.Album.Name, 75) }
+        </div>
+    </div>
+}

@@ -1,7 +1,30 @@
 package components
 
+import "log"
+
+func hxVals(name string) string {
+    out := `{"name": "` + name + `"}`
+    log.Println(out)
+    return out
+}
+
 templ Tag(name string){
-    <div class="bg-feature text-focused m-2 p-2 rounded-xl w-auto text-center align-middle">
-        {name}
+    <div 
+    id={ name } 
+    class="flex flex-row bg-feature m-2 p-2 rounded-xl w-auto align-middle justify-between">
+        <div class="text-focused text-xl font-bold">
+            { name }
+        </div>
+        <div>
+            <button
+            hx-delete="/tag"
+            hx-swap="outerHTML"
+            hx-target={ "#" + name }
+            hx-trigger="click"
+            hx-vals={ "{\"name\":\"" + name +"\"}" }
+            >
+                <img src="static/icons/trash.svg" alt="delete" class="pt-1 w-6 h-6" />
+            </button>
+        </div>
     </div>
 }

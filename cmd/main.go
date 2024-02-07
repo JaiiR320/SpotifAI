@@ -2,40 +2,77 @@ package main
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/JaiiR320/SpotifAI/model"
+	"github.com/JaiiR320/SpotifAI/scripts"
+	"github.com/JaiiR320/SpotifAI/utils"
 	"github.com/JaiiR320/SpotifAI/view"
-	"github.com/a-h/templ"
+	"github.com/JaiiR320/SpotifAI/view/components"
 	"github.com/labstack/echo/v4"
 )
-
-var client_id = `04c4fff349274db8b607e7a927f2ca5a`
-var client_secret = `a97b3bed058d4a1ea4502654bcf554f6`
 
 func main() {
 	router := echo.New()
 
+	// Serve static files
 	router.Static("/static", "/static")
 
+	// Site Routes
 	router.GET("/", HandleShowHome)
 	router.GET("/login", HandleSpotifyAuth)
 
 	router.GET("/callback", HandleSpotifyCallback)
 
-	// scripts.ParsePlaylist("example.json")
+	// API Routes
+	router.PUT("/tag", HandleAddTag)
+	router.DELETE("/tag", HandleDeleteTag)
+	router.GET("/filter", HandleFilter)
+
+	scripts.ParsePlaylist("example.json")
 
 	log.Fatal(router.Start(":3000"))
 }
 
+func HandleFilter(c echo.Context) error {
+	log.Println("Filtering")
+
+	// do some filtering
+	selectedItems := scripts.FilterSongs(model.LikedSongs.Items, model.Tags)
+
+	return utils.Render(c, view.TrackList(selectedItems))
+}
+
+func HandleDeleteTag(c echo.Context) error {
+	values, err := utils.ParseBody(c.Request())
+	if err != nil {
+		return err
+	}
+	// Get values from form data
+	tag := values.Get("name")
+
+	// Delete tag from model
+	err = utils.DeleteFromSlice(&model.Tags, tag)
+	if err != nil {
+		return c.HTML(http.StatusNoContent, "Tag not found")
+	}
+
+	return c.HTML(http.StatusOK, "")
+}
+
+func HandleAddTag(c echo.Context) error {
+	tag := c.FormValue("tag")
+
+	model.Tags = append(model.Tags, tag)
+
+	return utils.Render(c, components.Tag(tag))
+}
+
 func HandleShowHome(c echo.Context) error {
-	return Render(c, view.Home())
+	return utils.Render(c, view.Home())
 }
 
 func HandleSpotifyAuth(c echo.Context) error {
@@ -43,7 +80,7 @@ func HandleSpotifyAuth(c echo.Context) error {
 
 	data := url.Values{}
 	data.Set("response_type", "code")
-	data.Set("client_id", client_id)
+	data.Set("client_id", model.Client_id)
 	data.Set("scope", "user-read-private user-library-read")
 	data.Set("redirect_uri", "http://localhost:3000/callback")
 
@@ -53,100 +90,41 @@ func HandleSpotifyAuth(c echo.Context) error {
 }
 
 func HandleSpotifyCallback(c echo.Context) error {
+	// get access token from spotify through Authentification
 	err := getToken(c)
 	if err != nil {
 		return err
 	}
 
+	// get user info from spotify with token
 	err = getUser()
 	if err != nil {
-		log.Println("GET USER ", err)
 		return err
 	}
 
-	c.QueryParams().Del("code")
+	log.Println(model.CurrentUser.DisplayName, "logged in")
+	model.Logged = true
 
 	return c.Redirect(http.StatusFound, "/")
 }
 
-type TokenResponse struct {
-	AccessToken string `json:"access_token"`
-}
-
 func getToken(c echo.Context) error {
-	code := c.QueryParam("code")
+	idAndSecret := base64.StdEncoding.EncodeToString([]byte(model.Client_id + ":" + model.Client_secret))
 
-	data := url.Values{}
-	data.Set("grant_type", "authorization_code")
-	data.Set("code", code)
-	data.Set("redirect_uri", "http://localhost:3000/callback")
+	post := scripts.Post("https://accounts.spotify.com/api/token").
+		WithHeader("Content-Type", "application/x-www-form-urlencoded").
+		WithHeader("Authorization", "Basic "+idAndSecret).
+		WithQuery("grant_type", "authorization_code").
+		WithQuery("code", c.QueryParam("code")).
+		WithQuery("redirect_uri", "http://localhost:3000/callback").
+		WithObject(&model.AccessToken)
 
-	req, err := http.NewRequest("POST", "https://accounts.spotify.com/api/token", strings.NewReader(data.Encode()))
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Authorization", "Basic "+client_id)
-	req.Header.Set("Authorization",
-		"Basic "+base64.StdEncoding.EncodeToString([]byte(client_id+":"+client_secret)))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	var tokenResponse TokenResponse
-	err = json.Unmarshal(body, &tokenResponse)
-	if err != nil {
-		return err
-	}
-
-	model.AccessToken = tokenResponse.AccessToken
-	log.Println(model.AccessToken)
-	return nil
+	return post.Do()
 }
 
 func getUser() error {
-	req, err := http.NewRequest("GET", "https://api.spotify.com/v1/me", nil)
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Authorization", "Bearer "+model.AccessToken)
-
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	var user model.User
-
-	err = json.Unmarshal(body, &user)
-
-	if err != nil {
-		return err
-	}
-
-	model.CurrentUser = user
-	return nil
-}
-
-func Render(c echo.Context, component templ.Component) error {
-	return component.Render(c.Request().Context(), c.Response())
+	req := scripts.Get("https://api.spotify.com/v1/me").
+		WithHeader("Authorization", "Bearer "+model.AccessToken.AccessToken).
+		WithObject(&model.CurrentUser)
+	return req.Do()
 }

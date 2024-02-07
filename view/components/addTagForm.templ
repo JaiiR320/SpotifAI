@@ -3,12 +3,11 @@ package components
 templ AddTagForm(){
     <form
 		class="flex flex-row w-auto items-center justify-center"
-		hx-post="/api/listing"
-		hx-target="#dashboard"
+		hx-put="/tag"
+		hx-target="#tags"
 		hx-swap="beforeend"
 	>
 		<input
-			id="urlInput"
 			type="text"
 			class="w-auto rounded-full text-xl outline-none
 			text-unfocused bg-feature px-3 py-2"

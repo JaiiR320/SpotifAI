@@ -3,27 +3,47 @@ package view
 import (
     "github.com/JaiiR320/SpotifAI/view/components"
     "github.com/JaiiR320/SpotifAI/view/layout"
+    "github.com/JaiiR320/SpotifAI/model"
 )
 
 templ Home(){
     @layout.Base(){
         <div class="flex flex-row m-2">
-            <div id="left" class="w-1/3 mr-1 bg-panel p-6 rounded-xl">
+            <div class="w-1/3 mr-1 bg-panel p-6 rounded-xl">
                 <div class="align-middle flex flex-row justify-between">
                     <div class="align-middle text-2xl font-bold text-unfocused">Tags</div>
                     <div class="px-4">
                         @components.AddTagForm()
                     </div>
                 </div>
-                <div class="p-2 m-2">
-                    @components.Tag("New Tag")
-                    @components.Tag("New Tag")
-                    @components.Tag("New Tag")
-                    @components.Tag("New Tag")
+                <div id="tags" class="p-2 m-2">
+                    for _, tag := range model.Tags {
+                        @components.Tag(tag)
+                    }
                 </div>
             </div>
-            <div id="right" class="w-2/3 ml-1 bg-panel p-6 rounded-xl">
+            <div class="w-2/3 ml-1 bg-panel p-6 rounded-xl">
+                if !model.Logged {
+                    <div class="text-3xl font-bold text-focused">
+                        Please login
+                    </div>
+                } else {
+                    <div id="TrackList" class="flex-col"
+                    hx-get="/filter"
+                    hx-swap="innerHTML"
+                    hx-trigger="every 3s"
+                    hx-target="#TrackList"
+                    >
+                        @TrackList(model.LikedSongs.Items)
+                    </div>
+                }
             </div>
         </div>
+    }
+}
+
+templ TrackList(items []model.Item){
+    for _, item := range items {
+        @components.SongCard(item.Track)
     }
 }

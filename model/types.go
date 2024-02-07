@@ -13,3 +13,31 @@ type User struct {
 		Width  int    `json:"width"`
 	} `json:"images"`
 }
+
+type TokenResponse struct {
+	AccessToken string `json:"access_token"`
+}
+
+// Playlist types
+type Track struct {
+	Name  string `json:"name"`
+	Album struct {
+		Artists []struct {
+			Name string `json:"name"`
+		} `json:"artists"`
+		Images []struct {
+			Height int    `json:"height"`
+			URL    string `json:"url"`
+			Width  int    `json:"width"`
+		} `json:"images"`
+		Name string `json:"name"`
+	} `json:"album"`
+}
+
+type Item struct {
+	Track `json:"track"`
+}
+
+type Playlist struct {
+	Items []Item `json:"items"`
+}
