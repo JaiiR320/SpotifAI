@@ -13,6 +13,7 @@ type Request struct {
 	URL    string
 	Header map[string]string
 	Query  map[string]string
+	Body   interface{}
 	Object *interface{}
 }
 
@@ -25,10 +26,24 @@ func (r *Request) Do() error {
 		query.Set(key, value)
 	}
 
+	var req *http.Request
+
 	// build request
-	req, err := http.NewRequest(r.Method, r.URL, strings.NewReader(query.Encode()))
-	if err != nil {
-		return err
+	if r.Body != nil {
+		jsonData, err := json.Marshal(r.Body)
+		if err != nil {
+			return err
+		}
+		req, err = http.NewRequest(r.Method, r.URL, strings.NewReader(string(jsonData)))
+		if err != nil {
+			return err
+		}
+	} else {
+		var err error
+		req, err = http.NewRequest(r.Method, r.URL, strings.NewReader(query.Encode()))
+		if err != nil {
+			return err
+		}
 	}
 
 	// set headers to request
@@ -87,6 +102,11 @@ func (req *Request) WithQuery(key, value string) *Request {
 
 func (req *Request) WithObject(object interface{}) *Request {
 	req.Object = &object
+	return req
+}
+
+func (req *Request) WithBody(body interface{}) *Request {
+	req.Body = body
 	return req
 }
 
