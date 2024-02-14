@@ -1,6 +1,10 @@
-package layout
+package pages
 
-templ Base(){
+import (
+	"github.com/JaiiR320/SpotifAI/view/layout"
+)
+
+templ Home(){
     <!DOCTYPE html>
 	<html class="h-full font-sans" lang="en">
 		<head>
@@ -13,8 +17,8 @@ templ Base(){
 			<title>SpotifAI</title>
 		</head>
 		<body class="bg-black">
-			@Navbar()
-			{ children... }
+			@layout.Navbar()
+			@layout.Content()
 		</body>
 	</html>
 }

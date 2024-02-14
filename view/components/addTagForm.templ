@@ -4,8 +4,8 @@ templ AddTagForm(){
     <form
 		class="flex flex-row w-auto items-center justify-center"
 		hx-put="/tag"
-		hx-target="#tags"
-		hx-swap="beforeend"
+		hx-target="#content"
+		hx-swap="outerHTML"
 	>
 		<input
 			type="text"

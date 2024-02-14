@@ -10,18 +10,17 @@ func hxVals(name string) string {
 
 templ Tag(name string){
     <div 
-    id={ name } 
+    id={ name }
     class="flex flex-row bg-feature m-2 p-2 rounded-xl w-auto align-middle justify-between">
         <div class="text-focused text-xl font-bold">
             { name }
         </div>
         <div>
             <button
-            hx-delete="/tag"
+            hx-delete={ "/tag/" + name }
             hx-swap="outerHTML"
-            hx-target={ "#" + name }
+            hx-target="#content"
             hx-trigger="click"
-            hx-vals={ "{\"name\":\"" + name +"\"}" }
             >
                 <img src="static/icons/trash.svg" alt="delete" class="pt-1 w-6 h-6" />
             </button>

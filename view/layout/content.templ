@@ -1,0 +1,41 @@
+package layout
+
+import (
+    "github.com/JaiiR320/SpotifAI/view/components"
+    "github.com/JaiiR320/SpotifAI/model"
+)
+
+templ Content(){
+    <div id="content" class="flex flex-row m-2">
+        <div class="w-1/3 mr-1 bg-panel p-6 rounded-xl">
+            <div class="align-middle flex flex-row justify-between">
+                <div class="align-middle text-2xl font-bold text-unfocused">Tags</div>
+                <div class="px-4">
+                    @components.AddTagForm()
+                </div>
+            </div>
+            <div id="tags" class="p-2 m-2">
+                for _, tag := range model.Tags {
+                    @components.Tag(tag)
+                }
+            </div>
+        </div>
+        <div class="w-2/3 ml-1 bg-panel p-6 rounded-xl">
+            if !model.Logged {
+                <div class="text-3xl font-bold text-focused">
+                    Please login
+                </div>
+            } else {
+                <div id="TrackList" class="flex-col">
+                    @TrackList(model.FilteredSongs)
+                </div>
+            }
+        </div>
+    </div>
+}
+
+templ TrackList(items []model.Item){
+    for _, item := range items {
+        @components.SongCard(item.Track)
+    }
+}

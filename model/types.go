@@ -41,3 +41,11 @@ type Item struct {
 type Playlist struct {
 	Items []Item `json:"items"`
 }
+
+// {
+//     "songs":[{
+//         "title":"HACIENDO QUE ME AMAS"
+//     },{
+// 	"title":"AL CALLAO'"
+//     }]
+// }
