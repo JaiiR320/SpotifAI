@@ -6,7 +6,7 @@ import (
 
 templ Home(){
     <!DOCTYPE html>
-	<html class="h-full font-sans" lang="en">
+	<html class="font-sans" lang="en">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -16,7 +16,7 @@ templ Home(){
 			<script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"/>
 			<title>SpotifAI</title>
 		</head>
-		<body class="bg-black">
+		<body class="h-svh overflow-hidden bg-black">
 			@layout.Navbar()
 			@layout.Content()
 		</body>

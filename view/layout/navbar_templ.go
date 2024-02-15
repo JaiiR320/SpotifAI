@@ -118,7 +118,7 @@ func Navbar() templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<nav class=\"bg-panel flex flex-row text-5xl justify-between rounded-xl p-6 m-2\"><div class=\"font-bold text-nowrap text-center align-middle\"><div class=\"text-focused\">SpotifAI</div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<nav class=\"bg-panel h-24 flex flex-row text-5xl justify-between rounded-xl p-6 m-2\"><div class=\"font-bold text-nowrap text-center align-middle\"><div class=\"text-focused\">SpotifAI</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

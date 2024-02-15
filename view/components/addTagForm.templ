@@ -2,14 +2,14 @@ package components
 
 templ AddTagForm(){
     <form
-		class="flex flex-row w-auto items-center justify-center"
+		class="flex flex-row w-full pl-4 "
 		hx-put="/tag"
 		hx-target="#content"
 		hx-swap="outerHTML"
 	>
 		<input
 			type="text"
-			class="w-auto rounded-full text-xl outline-none
+			class="w-full rounded-lg text-xl outline-none
 			text-unfocused bg-feature px-3 py-2"
 			placeholder="Add a new tag..."
 			name="tag"

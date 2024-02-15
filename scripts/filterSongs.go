@@ -9,15 +9,16 @@ import (
 
 func FilterSongs(songs []model.Item, tags []string) []model.Item {
 	if len(tags) == 0 {
+		log.Println("No tags to filter")
 		return model.LikedSongs
 	}
-	//GenerateTracks(model.LikedSongs, model.Tags)
 	log.Print("Filtering songs")
 	selectedItems := make([]model.Item, 0)
-	for i := 0; i < 15; i++ {
+	for i := 0; i < 20; i++ {
 		randomIndex := rand.Intn(len(model.LikedSongs))
 		selectedItems = append(selectedItems, model.LikedSongs[randomIndex])
 	}
+	//return GenerateTracks(model.LikedSongs, model.Tags)
 	return selectedItems
 }
 
@@ -28,27 +29,3 @@ type Song struct {
 type Songs struct {
 	Songs []Song `json:"songs"`
 }
-
-// Filter Songs
-// str, err := GenerateTracks(model.LikedSongs, model.Tags)
-// if err != nil {
-// 	log.Panic(err)
-// }
-
-// var jsonSongs Songs
-// err = json.Unmarshal([]byte(str), &jsonSongs)
-// if err != nil {
-// 	log.Panic(err)
-// }
-
-// var filteredSongs []model.Item
-
-// for _, s := range jsonSongs.Songs {
-// 	for _, song := range songs {
-// 		if strings.Contains(song.Track.Name, s.Title) {
-// 			filteredSongs = append(filteredSongs, song)
-// 		}
-// 	}
-// }
-
-// return filteredSongs

@@ -5,6 +5,8 @@ var Tags []string
 var LikedSongs []Item
 var FilteredSongs []Item
 
+var LikedSongsResponse Playlist
+
 // Access variables
 var AccessToken TokenResponse
 var CurrentUser User

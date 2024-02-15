@@ -4,14 +4,21 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
 
 	"github.com/JaiiR320/SpotifAI/model"
 	"github.com/imroc/req/v3"
+	"github.com/joho/godotenv"
 )
 
-var OpenAIKey = "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"
-
 func GenerateTracks(tracks []model.Item, tags []string) (string, error) {
+	err := godotenv.Load(".env")
+	if err != nil {
+		return "", err
+	}
+
+	OpenAIKey := os.Getenv("OPENAI_KEY")
+
 	if len(tracks) == 0 || len(tags) == 0 {
 		return "", errors.New("no tracks or tags to filter")
 	}

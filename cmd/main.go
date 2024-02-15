@@ -33,9 +33,6 @@ func main() {
 	router.PUT("/tag", HandleAddTag)
 	router.DELETE("/tag/:name", HandleDeleteTag)
 
-	// initialize liked songs list
-	scripts.InitializeSongList("example.json")
-
 	log.Fatal(router.Start(":3000"))
 }
 
@@ -96,9 +93,35 @@ func HandleSpotifyCallback(c echo.Context) error {
 	}
 
 	log.Println(model.CurrentUser.DisplayName, "logged in")
+	err = getLikedSongs()
+	if err != nil {
+		return err
+	}
+
 	model.Logged = true
 
 	return c.Redirect(http.StatusFound, "/")
+}
+
+func getLikedSongs() error {
+	log.Println("Getting liked songs")
+	client := req.C()
+	resp, err := client.R().
+		SetHeader("Authorization", "Bearer "+model.AccessToken.AccessToken).
+		SetSuccessResult(&model.LikedSongsResponse).
+		Get("https://api.spotify.com/v1/me/tracks")
+	if err != nil {
+		return err
+	}
+
+	if resp.GetStatusCode() != http.StatusOK {
+		return fmt.Errorf("no response from Spotify")
+	}
+
+	model.LikedSongs = model.LikedSongsResponse.Items
+	model.FilteredSongs = model.LikedSongsResponse.Items
+
+	return nil
 }
 
 func getToken(c echo.Context) error {
@@ -113,7 +136,6 @@ func getToken(c echo.Context) error {
 		SetQueryParam("code", c.QueryParam("code")).
 		SetQueryParam("redirect_uri", "http://localhost:3000/callback").
 		SetSuccessResult(&model.AccessToken).
-		EnableDump().
 		Post("https://accounts.spotify.com/api/token")
 	if err != nil {
 		return err
@@ -132,7 +154,6 @@ func getUser() error {
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+model.AccessToken.AccessToken).
 		SetSuccessResult(&model.CurrentUser).
-		EnableDump().
 		Get("https://api.spotify.com/v1/me")
 	if err != nil {
 		return err
@@ -144,18 +165,3 @@ func getUser() error {
 
 	return nil
 }
-
-// req := scripts.Get("https://api.spotify.com/v1/me").
-// 		WithHeader("Authorization", "Bearer "+model.AccessToken.AccessToken).
-// 		WithObject(&model.CurrentUser)
-// 	return req.Do()
-
-// post := scripts.Post("https://accounts.spotify.com/api/token").
-// 		WithHeader("Content-Type", "application/x-www-form-urlencoded").
-// 		WithHeader("Authorization", "Basic "+idAndSecret).
-// 		WithQuery("grant_type", "authorization_code").
-// 		WithQuery("code", c.QueryParam("code")).
-// 		WithQuery("redirect_uri", "http://localhost:3000/callback").
-// 		WithObject(&model.AccessToken)
-
-// 	return post.Do()

@@ -1,6 +1,8 @@
 package model
 
-import "github.com/JaiiR320/SpotifAI/utils"
+import (
+	"github.com/JaiiR320/SpotifAI/utils"
+)
 
 func AddTag(tag string) {
 	Tags = append(Tags, tag)

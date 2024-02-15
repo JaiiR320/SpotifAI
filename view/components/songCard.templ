@@ -1,6 +1,7 @@
 package components
 
 import "github.com/JaiiR320/SpotifAI/model"
+import "strconv"
 
 func truncate(str string, m int) string {
     if len(str) > m {
@@ -10,9 +11,12 @@ func truncate(str string, m int) string {
 
 }
 
-templ SongCard(song model.Track){
+templ SongCard(song model.Track, index int){
     <div class="flex flex-row hover:bg-feature rounded-lg p-2 items-center justify-between">
-        <div class="flex flex-row justify-start">
+        <div class="flex flex-row justify-start items-center">
+            <div class="text-unfocused text-right text-lg pr-4 w-9">
+                { strconv.Itoa(index + 1) }
+            </div>
             <img src={song.Album.Images[2].URL} class="mr-2 w-12 h-12" alt="Song Image"/>
             <div class="flex-col"> 
                 <div class="text-lg font-bold text-focused">
