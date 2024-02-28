@@ -1,49 +1,51 @@
 package scripts
 
 import (
-	"encoding/json"
-	"errors"
+	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/JaiiR320/SpotifAI/model"
 	"github.com/imroc/req/v3"
 	"github.com/joho/godotenv"
 )
 
-func GenerateTracks(tracks []model.Item, tags []string) (string, error) {
+func GenerateTracks(tracks []model.Song, tags []string) []model.Song {
+	log.Println("Generating tracks")
 	err := godotenv.Load(".env")
 	if err != nil {
-		return "", err
+		log.Println(err)
+		return model.LikedSongs
 	}
 
 	OpenAIKey := os.Getenv("OPENAI_KEY")
 
 	if len(tracks) == 0 || len(tags) == 0 {
-		return "", errors.New("no tracks or tags to filter")
+		log.Println("No tracks or tags to filter by")
+		return model.LikedSongs
 	}
 
 	baseURL := "https://api.openai.com/v1/chat/completions"
 
-	data, err := json.Marshal(&tracks)
-	if err != nil {
-		return "", errors.New("error marshalling data to JSON")
-	}
-	str := string(data)
+	str := `You are an assistant that generates a list. 
+	You always return just the list with no additional description, formatting or context.
+	Duplicates are not allowed in the list.
+	The format of the list should follow the pattern: title1,...,titleN. Do not add any extra spaces or characters.`
 
-	str = "Filter these songs :" + str + " by these tags: "
+	str += "\nGenerate a list of songs that match these tags: "
 	for _, tag := range tags {
-		str += tag + ", "
+		str += "\"" + tag + "\","
 	}
 
-	str += `You are an assistant that generates a JSON. You always return just the JSON with no additional description or context.
+	str += " using these songs:"
 
-	The format of the JSON should follow 
-	
-	{"songs":[{"title":"title"}]}`
+	for _, song := range tracks {
+		str += "\"" + song.Track.Name + "\","
+	}
 
 	body := Body{
-		Model: "gpt-3.5-turbo",
+		Model: "gpt-4-0125-preview",
 		Messages: []Message{{
 			Role:    "user",
 			Content: str,
@@ -51,7 +53,7 @@ func GenerateTracks(tracks []model.Item, tags []string) (string, error) {
 	}
 
 	var response Response
-
+	req.DevMode()
 	client := req.C()
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -61,13 +63,34 @@ func GenerateTracks(tracks []model.Item, tags []string) (string, error) {
 		EnableDump().
 		Post(baseURL)
 	if err != nil {
-		return "", errors.New("error with Request to OpenAI GPT-3")
+		log.Println(err)
+		return model.LikedSongs
 	}
 
 	if resp.GetStatusCode() != http.StatusOK {
-		return "", errors.New("no response from OpenAI GPT-3")
+		log.Println("Bad response from OpenAI")
+		return model.LikedSongs
 	}
-	return response.Choices[0].Message.Content, nil
+	str = strings.ReplaceAll(response.Choices[0].Message.Content, "\"", "")
+
+	strings.Split(str, ",")
+
+	filteredSongs := FilterSongsByTitle(strings.Split(str, ","))
+	log.Println("Filtered songs")
+	return filteredSongs
+}
+
+func FilterSongsByTitle(songs []string) []model.Song {
+	var filteredSongs []model.Song
+	for _, song := range songs {
+		for _, likedSong := range model.LikedSongs {
+			if likedSong.Track.Name == song {
+				filteredSongs = append(filteredSongs, likedSong)
+				break
+			}
+		}
+	}
+	return filteredSongs
 }
 
 type Body struct {

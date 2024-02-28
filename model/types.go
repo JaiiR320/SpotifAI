@@ -32,20 +32,13 @@ type Track struct {
 		} `json:"images"`
 		Name string `json:"name"`
 	} `json:"album"`
+	ID string `json:"id"`
 }
 
-type Item struct {
+type Song struct {
 	Track `json:"track"`
 }
 
 type Playlist struct {
-	Items []Item `json:"items"`
+	Songs []Song `json:"items"`
 }
-
-// {
-//     "songs":[{
-//         "title":"HACIENDO QUE ME AMAS"
-//     },{
-// 	"title":"AL CALLAO'"
-//     }]
-// }

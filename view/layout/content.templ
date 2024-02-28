@@ -6,7 +6,7 @@ import (
 )
 
 templ Content(){
-    <div id="content" class="flex flex-row m-2 fitView flex-grow">
+    <div id="content" class="flex flex-row m-2 fitView flex-grow fade-me-in">
         <div class="w-1/3 mr-1 bg-panel p-6 rounded-xl">
             <div class="align-middle flex flex-row justify-normal items-center">
                 <div class="align-middle text-2xl font-bold text-unfocused">Tags</div>
@@ -24,6 +24,21 @@ templ Content(){
                     Please login
                 </div>
             } else {
+                <div class="flex justify-between">
+                    <div class="text-white font-bold text-3xl">
+                        if len(model.FilteredSongs) < len(model.LikedSongs) {
+                            Filtered Songs
+                        } else {
+                            Liked Songs
+                        }
+                    </div>
+                    <button 
+                    hx-post="/create"
+                    hx-swap="none"
+                    type="button" class="bg-accent hover:bg-accent-hover p-2 mb-3 rounded-xl hover:text-black text-panel text-2xl font-bold">
+                        Export to Spotify
+                    </button>
+                </div>
                 for i, item := range model.FilteredSongs {
                     @components.SongCard(item.Track, i)
                 }

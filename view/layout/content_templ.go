@@ -28,7 +28,7 @@ func Content() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"content\" class=\"flex flex-row m-2 fitView flex-grow\"><div class=\"w-1/3 mr-1 bg-panel p-6 rounded-xl\"><div class=\"align-middle flex flex-row justify-normal items-center\"><div class=\"align-middle text-2xl font-bold text-unfocused\">Tags</div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"content\" class=\"flex flex-row m-2 fitView flex-grow fade-me-in\"><div class=\"w-1/3 mr-1 bg-panel p-6 rounded-xl\"><div class=\"align-middle flex flex-row justify-normal items-center\"><div class=\"align-middle text-2xl font-bold text-unfocused\">Tags</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -56,6 +56,25 @@ func Content() templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"flex justify-between\"><div class=\"text-white font-bold text-3xl\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if len(model.FilteredSongs) < len(model.LikedSongs) {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("Filtered Songs\r")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("Liked Songs\r")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div><button hx-post=\"/create\" hx-swap=\"none\" type=\"button\" class=\"bg-accent hover:bg-accent-hover p-2 mb-3 rounded-xl hover:text-black text-panel text-2xl font-bold\">Export to Spotify\r</button></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 			for i, item := range model.FilteredSongs {
 				templ_7745c5c3_Err = components.SongCard(item.Track, i).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {

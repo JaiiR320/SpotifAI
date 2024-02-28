@@ -5,7 +5,7 @@ templ AddTagForm(){
 		class="flex flex-row w-full pl-4 "
 		hx-put="/tag"
 		hx-target="#content"
-		hx-swap="outerHTML"
+		hx-swap="outerHTML transition:true swap:500ms"
 	>
 		<input
 			type="text"

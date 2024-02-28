@@ -2,10 +2,8 @@ package model
 
 // Song structs
 var Tags []string
-var LikedSongs []Item
-var FilteredSongs []Item
-
-var LikedSongsResponse Playlist
+var LikedSongs []Song
+var FilteredSongs []Song
 
 // Access variables
 var AccessToken TokenResponse

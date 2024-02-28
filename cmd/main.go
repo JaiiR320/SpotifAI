@@ -32,8 +32,14 @@ func main() {
 	// API Routes
 	router.PUT("/tag", HandleAddTag)
 	router.DELETE("/tag/:name", HandleDeleteTag)
+	router.POST("/create", HandleCreatePlaylist)
 
 	log.Fatal(router.Start(":3000"))
+}
+
+func HandleCreatePlaylist(c echo.Context) error {
+	scripts.AddTracksToPlaylist()
+	return c.NoContent(http.StatusNoContent)
 }
 
 func HandleDeleteTag(c echo.Context) error {
@@ -45,20 +51,33 @@ func HandleDeleteTag(c echo.Context) error {
 
 	log.Println("Deleted tag:", tag)
 
-	model.FilteredSongs = scripts.FilterSongs(model.LikedSongs, model.Tags)
+	model.FilteredSongs = scripts.GenerateTracks(model.LikedSongs, model.Tags)
 
 	return utils.Render(c, layout.Content())
 }
 
 func HandleAddTag(c echo.Context) error {
+	if !model.Logged {
+		return fmt.Errorf("not logged in")
+	}
 	tag := c.FormValue("tag")
 
-	model.AddTag(tag)
+	if !validTag(tag) {
+		return fmt.Errorf("invalid tag")
+	}
 	log.Println("Added tag:", tag)
 
-	model.FilteredSongs = scripts.FilterSongs(model.LikedSongs, model.Tags)
+	model.AddTag(tag)
+
+	// filter songs by tags
+	model.FilteredSongs = scripts.GenerateTracks(model.LikedSongs, model.Tags)
 
 	return utils.Render(c, layout.Content())
+}
+
+func validTag(tag string) bool {
+	// TODO do more checks here
+	return len(tag) != 0
 }
 
 func HandleShowHome(c echo.Context) error {
@@ -71,7 +90,7 @@ func HandleSpotifyAuth(c echo.Context) error {
 	data := url.Values{}
 	data.Set("response_type", "code")
 	data.Set("client_id", model.Client_id)
-	data.Set("scope", "user-read-private user-library-read")
+	data.Set("scope", "user-read-private user-library-read playlist-modify-private playlist-modify-public")
 	data.Set("redirect_uri", "http://localhost:3000/callback")
 
 	urlStr = fmt.Sprintf("%s?%s", urlStr, data.Encode())
@@ -92,36 +111,42 @@ func HandleSpotifyCallback(c echo.Context) error {
 		return err
 	}
 
-	log.Println(model.CurrentUser.DisplayName, "logged in")
-	err = getLikedSongs()
-	if err != nil {
-		return err
-	}
+	getLikedSongs()
 
 	model.Logged = true
-
+	log.Println(model.CurrentUser.DisplayName, "logged in")
 	return c.Redirect(http.StatusFound, "/")
 }
 
-func getLikedSongs() error {
+func getLikedSongs() {
 	log.Println("Getting liked songs")
+	var songs []model.Song
+
+	for i := 0; i < 5; i++ {
+		temp := requestSongs(i * 20)
+		songs = append(songs, temp...)
+	}
+
+	model.LikedSongs = songs
+	model.FilteredSongs = songs
+}
+
+func requestSongs(offset int) []model.Song {
+	var response model.Playlist
 	client := req.C()
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+model.AccessToken.AccessToken).
-		SetSuccessResult(&model.LikedSongsResponse).
+		SetQueryParam("offset", fmt.Sprint(offset)).
+		SetSuccessResult(&response).
 		Get("https://api.spotify.com/v1/me/tracks")
 	if err != nil {
-		return err
+		log.Panic(err)
 	}
 
 	if resp.GetStatusCode() != http.StatusOK {
-		return fmt.Errorf("no response from Spotify")
+		log.Println("Bad response from Spotify")
 	}
-
-	model.LikedSongs = model.LikedSongsResponse.Items
-	model.FilteredSongs = model.LikedSongsResponse.Items
-
-	return nil
+	return response.Songs
 }
 
 func getToken(c echo.Context) error {
